@@ -680,11 +680,23 @@
       else if (v === 'not-submitting') dData.notSubmitting.push(t);
       else if (v === 'partial') dData.partial.push(t);
     });
-    const dSentences = [];
-    if (dData.submitting.length) dSentences.push(`They are submitting Disclaimer forms for ${dData.submitting.join(', ').replace(/, ([^,]*)$/, ' & $1')}`);
-    if (dData.notSubmitting.length) dSentences.push(`They are not submitting any Disclaimer forms for ${dData.notSubmitting.join(', ').replace(/, ([^,]*)$/, ' & $1')}`);
-    if (dData.partial.length) dSentences.push(`They are submitting Disclaimer forms for ${dData.partial.join(', ').replace(/, ([^,]*)$/, ' & $1')}, however there appears to be repairs that do not have Disclaimer forms`);
-    if (dSentences.length) summaryParts.push(dSentences.join(', ') + '.');
+    const SPECIAL = ['Stellantis Vehicle categorization forms', 'Volvo Warranty & Maintenance'];
+const dSentences = [];
+
+const regularSubmitting = dData.submitting.filter(b => !SPECIAL.includes(b));
+const specialSubmitting = dData.submitting.filter(b => SPECIAL.includes(b));
+const regularNotSubmitting = dData.notSubmitting.filter(b => !SPECIAL.includes(b));
+const specialNotSubmitting = dData.notSubmitting.filter(b => SPECIAL.includes(b));
+const regularPartial = dData.partial.filter(b => !SPECIAL.includes(b));
+const specialPartial = dData.partial.filter(b => SPECIAL.includes(b));
+
+if (regularSubmitting.length) dSentences.push(`They are submitting Disclaimer forms for ${regularSubmitting.join(', ').replace(/, ([^,]*)$/, ' & $1')}`);
+if (regularNotSubmitting.length) dSentences.push(`They are not submitting any Disclaimer forms for ${regularNotSubmitting.join(', ').replace(/, ([^,]*)$/, ' & $1')}`);
+if (regularPartial.length) dSentences.push(`They are submitting Disclaimer forms for ${regularPartial.join(', ').replace(/, ([^,]*)$/, ' & $1')}, however there appears to be repairs that do not have Disclaimer forms`);
+if (specialSubmitting.length) dSentences.push(`They are submitting ${specialSubmitting.join(' & ')}`);
+if (specialNotSubmitting.length) dSentences.push(`They are not submitting ${specialNotSubmitting.join(' & ')}`);
+if (specialPartial.length) dSentences.push(`They are submitting ${specialPartial.join(' & ')}, however there appears to be repairs that do not have the required forms`);
+if (dSentences.length) summaryParts.push(dSentences.join('. ') + '.');
 
     summaryParts.push('I sent them their 2025 & 2026 validation reports requesting they correct their data.');
 
@@ -963,6 +975,7 @@ Kindly note that below figures should match the total number of vehicles repaire
 </script>
 </body>
 </html>
+
 
 
 
