@@ -628,7 +628,7 @@
     const prefix = autobodyName ? `${autobodyName} - ` : '';
     summaryParts.push(
       `${prefix}${today}${submissionText} - Active (${activeRepairs}); Completed 2022(${completed2022}), 2023(${completed2023}), 2024(${completed2024}), 2025(${completed2025}), 2026(${completed2026}); ` +
-      `Write-offs(${writeOffs}). ${flagIfLow(pp2025, completed2025)} & ${flagIfLow(pp2026, completed2026)}; ` +
+      `Write-offs(${writeOffs}). PP 2025 ${flagIfLow(pp2025, completed2025)} & PP ${flagIfLow(pp2026, completed2026)}; ` +
       `2025 TSP(${tspBFormatted}) & 2026 TSP(${tspAFormatted}). Invalid Jobs(${invalidJobs}).`
     );
 
@@ -825,7 +825,7 @@ Kindly note that below figures should match the total number of vehicles repaire
   </tr>
   <tr style="background:#ffff00;">
     <td style="padding:8px 16px; border:1px solid #ddd; font-weight:bold; color:#b8860b;">Write-offs</td>
-    <td style="padding:8px 16px; border:1px solid #ddd; text-align:center; font-weight:bold; color:#b8860b;">${writeOffsVal}</td>
+    <td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${writeOffsVal}</td>
   </tr>
   <tr style="background:#ffffff;">
     <td style="padding:8px 16px; border:1px solid #ddd;">Submission Status</td>
@@ -839,7 +839,11 @@ emailParts.push(tableHTML);
     if (writeOffs === 0) emailParts.push('We notice your profile does not include any write-offs. Please be reminded that in terms of the SLA with all OEMs we administer, this information must be provided.\n');
     emailParts.push('Please note that we are aware that certain information cannot be added to jobs retrospectively (such as mileage for vehicles handed back to clients). We only request that you ensure that all future jobs include all such information as to ensure compliance in future.');
 
-    document.getElementById('reportText').innerHTML = `<div style="white-space:pre-wrap;font-family:inherit;">${emailParts.join('\n')}</div>`;
+    document.getElementById('reportText').innerHTML =
+  emailParts
+    .filter(p => p.trim() !== '')
+    .map(p => `<p style="margin-bottom:16px; line-height:1.6;">${p}</p>`)
+    .join('');
   }
 
   // ── Motivation ─────────────────────────────────────────
@@ -901,3 +905,4 @@ emailParts.push(tableHTML);
 </script>
 </body>
 </html>
+
