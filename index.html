@@ -818,7 +818,7 @@
     }
 
     // Stellantis — only if Stellantis dropdown is partial or not-submitting
-    if (selectedOEMs.includes('Stellantis')) {
+    if (document.getElementById('chkStellantis').checked) {
       const stellantisDisclaimerVal = document.getElementById('stellantisDisclaimer')?.value || '';
       if (stellantisDisclaimerVal === 'not-submitting' || stellantisDisclaimerVal === 'partial') {
         const stellantisType = document.querySelector('input[name="stellantisType"]:checked')?.value || '';
@@ -963,3 +963,4 @@ Kindly note that below figures should match the total number of vehicles repaire
 </script>
 </body>
 </html>
+
