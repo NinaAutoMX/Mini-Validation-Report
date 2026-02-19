@@ -113,6 +113,14 @@
       line-height: 1.8; margin-top: 30px; border-radius: 12px; box-shadow: 0 4px 16px var(--shadow);
     }
     #reportText { white-space: pre-wrap; word-break: break-word; }
+    /* Stellantis radio sub-group */
+    .stellantis-radio-group {
+      display: flex; gap: 16px; align-items: center; margin-top: 6px;
+      padding: 8px 14px; background: var(--bg-secondary);
+      border: 1px solid var(--border-color); border-radius: 8px;
+      flex-wrap: wrap;
+    }
+    .stellantis-radio-group label { font-weight: 400; font-size: 0.92em; }
     @media (max-width: 768px) {
       .header { flex-direction: column; }
       .header-content { flex-direction: column; width: 100%; }
@@ -202,12 +210,19 @@
         <label><input type="checkbox" id="chkMitsubishi"> Mitsubishi</label>
         <label><input type="checkbox" id="chkNissan"> Nissan</label>
         <label><input type="checkbox" id="chkRenault"> Renault</label>
-        <label><input type="checkbox" id="chkStellantis"> Stellantis</label>
+        <!-- Stellantis with Premium/Standard radio -->
+        <label><input type="checkbox" id="chkStellantis" onchange="toggleStellantisRadio()"> Stellantis</label>
         <label><input type="checkbox" id="chkSubaru"> Subaru</label>
         <label><input type="checkbox" id="chkSuzuki"> Suzuki</label>
         <label><input type="checkbox" id="chkTata"> Tata</label>
         <label><input type="checkbox" id="chkVolvo"> Volvo</label>
         <label><input type="checkbox" id="chkBmw"> BMW</label>
+      </div>
+      <!-- Stellantis Premium/Standard radio (hidden until Stellantis is checked) -->
+      <div id="stellantisRadioGroup" class="stellantis-radio-group" style="display:none; margin-top:14px;">
+        <span style="font-weight:600; color:var(--accent);">Stellantis type:</span>
+        <label><input type="radio" name="stellantisType" id="stellantisPremium" value="Premium"> Premium</label>
+        <label><input type="radio" name="stellantisType" id="stellantisStandard" value="Standard"> Standard</label>
       </div>
     </div>
 
@@ -460,6 +475,16 @@
 </div><!-- end .container -->
 
 <script>
+  // ── Stellantis radio toggle ────────────────────────────
+  function toggleStellantisRadio() {
+    const chk = document.getElementById('chkStellantis');
+    const grp = document.getElementById('stellantisRadioGroup');
+    grp.style.display = chk.checked ? 'flex' : 'none';
+    if (!chk.checked) {
+      document.querySelectorAll('input[name="stellantisType"]').forEach(r => r.checked = false);
+    }
+  }
+
   // ── Theme ──────────────────────────────────────────────
   function toggleTheme() {
     const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
@@ -504,6 +529,10 @@
     document.querySelectorAll('input[type="radio"]').forEach(r => {
       if (fd['radio_' + r.name] === r.value) r.checked = true;
     });
+    // Restore stellantis radio visibility
+    if (document.getElementById('chkStellantis').checked) {
+      document.getElementById('stellantisRadioGroup').style.display = 'flex';
+    }
   }
   function autoSave() { clearTimeout(autosaveTimeout); autosaveTimeout = setTimeout(saveFormData, 1000); }
   function newReport() {
@@ -513,6 +542,7 @@
     document.querySelectorAll('input[type="checkbox"],input[type="radio"]').forEach(el => el.checked = false);
     document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
     document.getElementById('reportText').innerHTML = '';
+    document.getElementById('stellantisRadioGroup').style.display = 'none';
     const ind = document.getElementById('autosaveIndicator');
     ind.textContent = 'New report started'; ind.style.color = 'var(--warning)';
     setTimeout(() => { ind.textContent = 'Auto-save enabled – your work is saved automatically'; ind.style.color = 'var(--accent)'; }, 2000);
@@ -527,34 +557,36 @@
     document.querySelectorAll('input[name="creator"]').forEach(c => { if (c !== cb) c.checked = false; });
   }
 
-  // Flag PP ratio red if < 65%
   function flagIfLow(value, total) {
     const ratio = total > 0 ? value / total : 0;
     const txt = `(${value}/${total})`;
     return ratio < 0.65 ? `<span style="color:var(--danger);font-weight:bold;">${txt}</span>` : txt;
   }
 
-  // Shared disclaimer selections builder
-  function getDisclaimerSelections() {
-    return [
-      { brand: 'BAIC',                                    id: 'baicDisclaimer' },
-      { brand: 'Ford',                                    id: 'fordDisclaimer' },
-      { brand: 'GWM & Haval',                             id: 'gwmhavalDisclaimer' },
-      { brand: 'Honda',                                   id: 'hondaDisclaimer' },
-      { brand: 'Hyundai',                                 id: 'hyundaiDisclaimer' },
-      { brand: 'Isuzu',                                   id: 'isuzuDisclaimer' },
-      { brand: 'JAC',                                     id: 'jacDisclaimer' },
-      { brand: 'LDV',                                     id: 'ldvDisclaimer' },
-      { brand: 'Mahindra',                                id: 'mahindraDisclaimer' },
-      { brand: 'MG',                                      id: 'mgDisclaimer' },
-      { brand: 'Mitsubishi',                              id: 'mitsubishiDisclaimer' },
-      { brand: 'Renault',                                 id: 'renaultDisclaimer' },
-      { brand: 'Subaru',                                  id: 'subaruDisclaimer' },
-      { brand: 'Suzuki',                                  id: 'suzukiDisclaimer' },
-      { brand: 'Volvo',                                   id: 'volvoDisclaimer' },
-      { brand: 'Stellantis Categorization Forms',         id: 'stellantisDisclaimer' },
+  // Disclaimer selections — EXCLUDES Stellantis and Volvo Warranty & Maintenance for email disclaimer paragraph
+  function getDisclaimerSelections(includeAll = false) {
+    const all = [
+      { brand: 'BAIC',                                      id: 'baicDisclaimer' },
+      { brand: 'Ford',                                      id: 'fordDisclaimer' },
+      { brand: 'GWM & Haval',                               id: 'gwmhavalDisclaimer' },
+      { brand: 'Honda',                                     id: 'hondaDisclaimer' },
+      { brand: 'Hyundai',                                   id: 'hyundaiDisclaimer' },
+      { brand: 'Isuzu',                                     id: 'isuzuDisclaimer' },
+      { brand: 'JAC',                                       id: 'jacDisclaimer' },
+      { brand: 'LDV',                                       id: 'ldvDisclaimer' },
+      { brand: 'Mahindra',                                  id: 'mahindraDisclaimer' },
+      { brand: 'MG',                                        id: 'mgDisclaimer' },
+      { brand: 'Mitsubishi',                                id: 'mitsubishiDisclaimer' },
+      { brand: 'Renault',                                   id: 'renaultDisclaimer' },
+      { brand: 'Subaru',                                    id: 'subaruDisclaimer' },
+      { brand: 'Suzuki',                                    id: 'suzukiDisclaimer' },
+      { brand: 'Volvo',                                     id: 'volvoDisclaimer' },
+      { brand: 'Stellantis Categorization Forms',           id: 'stellantisDisclaimer' },
       { brand: 'Volvo Warranty & Maintenance Verification', id: 'volvovDisclaimer' },
-    ].map(d => ({ brand: d.brand, value: document.getElementById(d.id)?.value || '' }));
+    ];
+    // For email disclaimer paragraph, exclude Stellantis and Volvo W&M
+    const filtered = includeAll ? all : all.filter(d => d.id !== 'stellantisDisclaimer' && d.id !== 'volvovDisclaimer');
+    return filtered.map(d => ({ brand: d.brand, value: document.getElementById(d.id)?.value || '' }));
   }
 
   function getManagementSystemText() {
@@ -616,7 +648,6 @@
     const tspAFormatted = 'R ' + tspRawA.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const tspBFormatted = 'R ' + tspRawB.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-    // Unusually low year detection
     const completedByYear = { 2022: completed2022, 2023: completed2023, 2024: completed2024, 2025: completed2025, 2026: completed2026 };
     const pastYears = [2022, 2023, 2024, 2025];
     const pastAvg   = pastYears.reduce((s, y) => s + completedByYear[y], 0) / pastYears.length;
@@ -640,7 +671,7 @@
     if (chkNotReceiving && receivingNotBrands) summaryParts.push(`There are some (${receivingNotBrands}) repairs where we are not receiving full data.`);
     if (chkInsurerName) summaryParts.push('They are not submitting Insurer name.');
 
-    // Disclaimer summary
+    // Disclaimer summary — include ALL for the report narrative
     const dData = { submitting: [], notSubmitting: [], partial: [] };
     ['baic','ford','gwmhaval','honda','hyundai','isuzu','jac','ldv','mahindra','mg','mitsubishi','renault','subaru','suzuki','volvo','stellantis','volvov'].forEach(p => {
       const v = document.getElementById(p + 'Disclaimer')?.value || '';
@@ -663,7 +694,8 @@
     if (chkNotReceiving && receivingNotBrands) summaryParts.push(`I noted we are not receiving full data for (${receivingNotBrands}) and asked them to update their permissions on their Management system so full data can be submitted for (${receivingNotBrands}).`);
     if (chkAggregateText && aggregateTextBrands) summaryParts.push(`I noted there are a number of repairs on (${aggregateTextBrands}) where we are not receiving full data and this may be due to a difference in spelling of the "MAKE" on their permissions vs the Job Card and requested they ensure full data is submitted for all repairs on (${aggregateTextBrands}).`);
 
-    const flaggedBrands = getDisclaimerSelections().filter(d => d.value === 'not-submitting' || d.value === 'partial').map(d => d.brand);
+    // Flagged brands for report — includes stellantis & volvov
+    const flaggedBrands = getDisclaimerSelections(true).filter(d => d.value === 'not-submitting' || d.value === 'partial').map(d => d.brand);
     if (flaggedBrands.length) summaryParts.push(`I reminded them to submit the relevant Disclaimer forms for (${flaggedBrands.join(', ')}). I referred them to & attached the relevant (${flaggedBrands.join(', ')}) bulletins & corresponding Disclaimer forms.`);
 
     if (openLong) summaryParts.push(`I noted there are a number of repairs which have been active for an unusually long time (${openLong}), and reminded them to close off/cancel Job cards as soon as possible after the repairs have been completed/cancelled.`);
@@ -704,6 +736,10 @@
     const completed2026       = +document.getElementById('completed2026').value || 0;
     const writeOffsVal        = +document.getElementById('writeOffs').value || 0;
 
+    // Not submitting full data
+    const chkNotReceiving    = document.getElementById('chkNotReceiving').checked;
+    const receivingNotBrands = document.getElementById('receivingNotBrands').value.trim();
+
     emailParts.push('Good day,\n\nKindly note, at present, your validation has failed. Kindly note this will be considered as a non-compliance at time of audit.\n');
 
     if (showLastSubmitted && lastSubmittedDate) {
@@ -712,6 +748,11 @@
       if (hasCheckboxSystem) msg += 'Please follow the attached instructions to ensure daily submission of data. ';
       msg += `If you have any issues, we suggest you contact ${managementSystemText} directly.`;
       emailParts.push(msg + '\n');
+    }
+
+    // Not submitting full data paragraph
+    if (chkNotReceiving && receivingNotBrands) {
+      emailParts.push(`Kindly note we see you are not submitting full data for ${receivingNotBrands}. Please urgently update your permissions on your management system so full data can be submitted for ${receivingNotBrands}.\n`);
     }
 
     if (chkAggregateText && aggregateTextBrands) {
@@ -745,7 +786,12 @@
     if (document.getElementById('chkMitsubishi').checked) selectedOEMs.push('Mitsubishi');
     if (document.getElementById('chkNissan').checked) selectedOEMs.push('Nissan');
     if (document.getElementById('chkRenault').checked) selectedOEMs.push('Renault');
-    if (document.getElementById('chkStellantis').checked) selectedOEMs.push('Stellantis');
+    if (document.getElementById('chkStellantis').checked) {
+  const stellantisType = document.querySelector('input[name="stellantisType"]:checked')?.value || '';
+  if (stellantisType === 'Premium') selectedOEMs.push('Alfa Romeo, Abarth, Chevrolet, Chrysler, Citroen, Dodge, Fiat, Jeep, LeapMotor, Opel & Peugeot');
+  else if (stellantisType === 'Standard') selectedOEMs.push('Chevrolet, Chrysler, Citroen, Dodge, Fiat, Opel & Peugeot');
+  else selectedOEMs.push('Stellantis');
+}
     if (document.getElementById('chkSubaru').checked) selectedOEMs.push('Subaru');
     if (document.getElementById('chkSuzuki').checked) selectedOEMs.push('Suzuki');
     if (document.getElementById('chkTata').checked) selectedOEMs.push('Tata');
@@ -758,13 +804,51 @@
       const tsp2025f = 'R ' + (+document.getElementById('2025tsp').value || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const tsp2026f = 'R ' + (+document.getElementById('2026tsp').value || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const oemList = selectedOEMs.join(', ').replace(/, ([^,]*)$/, ' and $1');
-      emailParts.push(`Kindly note further that your data submissions to AutoMX Connect indicate that Parts have only been fitted to ${pp2025} vehicles repaired in 2025 & ${pp2026} vehicles repaired in 2026 and the Total Spent on Parts submitted for Body Shop has been submitted as ${tsp2025f} for 2025 and ${tsp2026f} for 2026. There also appear to be a number of repairs on approved brands where only Part Description, Part Number and Job Card Price are being submitted.\n\nKindly note that the validation report checks if Part Order and Part Purchase Price are captured to let it know parts were fitted to a vehicle and so to check if Part Description, Supplier Name etc. are being submitted.\n\nPlease be sure to submit the following required parts information to AutoMX Connect:\n\n1) Part Description (for each and every part fitted to ${oemList} vehicles)\n2) Supplier Name (for each and every part fitted to ${oemList} vehicles)\n3) Part Purchase Price if purchased from the relevant OEM or one of its dealers (for each and every part fitted to ${oemList} vehicles)\n4) Total spent on Parts (not broken down by model)\n`);
+
+      emailParts.push(
+        `Kindly note further that your data submissions to AutoMX Connect indicate that Parts have only been fitted to ${pp2025} vehicles repaired in 2025 & ${pp2026} vehicles repaired in 2026 and the Total Spent on Parts submitted for Body Shop has been submitted as ${tsp2025f} for 2025 and ${tsp2026f} for 2026. There also appear to be a number of repairs on approved brands where only Part Description, Part Number and Job Card Price are being submitted.`
+      );
+      emailParts.push(
+        `Kindly note that the validation report checks if Part Order and Part Purchase Price are captured to let it know parts were fitted to a vehicle and so to check if Part Description, Supplier Name etc. are being submitted.`
+      );
+      emailParts.push(`Please be sure to submit the following required parts information to AutoMX Connect:`);
+      emailParts.push(
+        `1)\tPart Description (for each and every part fitted to ${oemList} vehicles)\n2)\tSupplier Name (for each and every part fitted to ${oemList} vehicles)\n3)\tPart Purchase Price if purchased from the relevant OEM or one of its dealers (for each and every part fitted to ${oemList} vehicles)\n4)\tTotal spent on Parts (not broken down by model)`
+      );
     }
 
-    if (selectedOEMs.includes('Stellantis')) emailParts.push('Please also remember to complete and upload the Accident Damage Vehicle Categorization Sheet, Quality Control Documentation and supporting documents for all repairs on Stellantis vehicles and the Disclaimer form for any repairs on in-warranty Stellantis vehicles where non-genuine, second hand, alternate salvaged and/or grey parts are fitted. Please find attached the relevant bulletin regarding how to complete and upload the required documents via AutoMX (https://www.automx.co.za/automx-main/) as well as the Quality Check Sheet and Disclaimer Form.\n');
-    if (selectedOEMs.includes('Ford')) emailParts.push('Please also remember to submit the relevant disclaimer form for any out of warranty Ford vehicles where non-genuine, second hand, alternate salvaged and/or grey safety critical parts are fitted. Please find attached the relevant Ford Bulletins and corresponding Disclaimer.\n');
+    // Stellantis — only if Stellantis dropdown is partial or not-submitting
+    if (selectedOEMs.includes('Stellantis')) {
+      const stellantisDisclaimerVal = document.getElementById('stellantisDisclaimer')?.value || '';
+      if (stellantisDisclaimerVal === 'not-submitting' || stellantisDisclaimerVal === 'partial') {
+        const stellantisType = document.querySelector('input[name="stellantisType"]:checked')?.value || '';
+        if (stellantisType === 'Premium') {
+          emailParts.push('Please also remember to complete and upload the Accident Damage Vehicle Categorization Sheet, Quality Control Documentation and supporting documents for all repairs on Stellantis vehicles and the Disclaimer form for any repairs on in-warranty Stellantis vehicles where non-genuine, second hand, alternate salvaged and/or grey parts are fitted. Please find attached the relevant bulletin regarding how to complete and upload the required documents via AutoMX (https://www.automx.co.za/automx-main/) as well as the Quality Check Sheet and Disclaimer Form.\n');
+        } else if (stellantisType === 'Standard') {
+          emailParts.push('Please also remember to complete and upload the Accident Damage Vehicle Categorization Sheet and supporting documents for all repairs on Stellantis vehicles and the Disclaimer form for any repairs on in-warranty Stellantis vehicles where non-genuine, second hand, alternate salvaged and/or grey parts are fitted. Please find attached the relevant bulletin regarding how to complete and upload the required documents via AutoMX (https://www.automx.co.za/automx-main/) as well as the Disclaimer Form.\n');
+        } else {
+          // No type selected — generic Stellantis paragraph
+          emailParts.push('Please also remember to complete and upload the Accident Damage Vehicle Categorization Sheet, Quality Control Documentation and supporting documents for all repairs on Stellantis vehicles and the Disclaimer form for any repairs on in-warranty Stellantis vehicles where non-genuine, second hand, alternate salvaged and/or grey parts are fitted. Please find attached the relevant bulletin regarding how to complete and upload the required documents via AutoMX (https://www.automx.co.za/automx-main/) as well as the Disclaimer Form.\n');
+        }
+      }
+    }
 
-    const inWarrantyOEMs = getDisclaimerSelections().filter(d => d.value === 'not-submitting' || d.value === 'partial').map(d => d.brand);
+    // Ford disclaimer paragraph
+    if (selectedOEMs.includes('Ford')) {
+      const fordDisclaimerVal = document.getElementById('fordDisclaimer')?.value || '';
+      if (fordDisclaimerVal === 'not-submitting' || fordDisclaimerVal === 'partial') {
+        emailParts.push('Please also remember to submit the relevant disclaimer form for any out of warranty Ford vehicles where non-genuine, second hand, alternate salvaged and/or grey safety critical parts are fitted. Please find attached the relevant Ford Bulletins and corresponding Disclaimer.\n');
+      }
+    }
+
+    // Volvo Warranty & Maintenance — own paragraph, only if partial or not-submitting
+    const volvovDisclaimerVal = document.getElementById('volvovDisclaimer')?.value || '';
+    if (volvovDisclaimerVal === 'not-submitting' || volvovDisclaimerVal === 'partial') {
+      emailParts.push('Please remember to submit the Volvo Warranty & Maintenance Verification form for all repairs on Volvo Trucks.\n');
+    }
+
+    // General disclaimer paragraph — EXCLUDES Stellantis and Volvo W&M
+    const inWarrantyOEMs = getDisclaimerSelections(false).filter(d => d.value === 'not-submitting' || d.value === 'partial').map(d => d.brand);
     if (inWarrantyOEMs.length) {
       const list = inWarrantyOEMs.join(', ').replace(/, ([^,]*)$/, ' or $1');
       emailParts.push(`Please also remember to submit the relevant disclaimer form for any in warranty ${list} vehicles where non-genuine, second hand, alternate salvaged and/or grey parts are fitted. Please find attached the relevant ${list} Bulletin/s and corresponding Disclaimer form/s.\n`);
@@ -772,7 +856,7 @@
 
     if (openLong > 0) emailParts.push('We further wish to bring to your attention that there are a number of repairs which have been active for an unusually long time. Please ensure that job cards are closed as soon as possible after completion and input relevant completion date so that AutoMX Connect can recognise that the repair has been completed. When closed, the job will automatically move from Active to completed, and count as a job for the month in which it is closed. Alternatively if the repairs have been cancelled please cancel the Job Card on your management system so AutoMX Connect knows to remove the repair from your reporting. Please find attached a copy of your Active Repairs Report which shows which repairs have been submitted to AutoMX Connect as active. Kindly note you can view the most up-to-date version of this report by logging into AutoMX Connect and following the instructions in the attached Guide.\n');
 
-    // Low year detection for email
+    // Low year detection
     const cby = { 2022: completed2022, 2023: completed2023, 2024: completed2024, 2025: completed2025, 2026: completed2026 };
     const py = [2022, 2023, 2024, 2025];
     const pavg = py.reduce((s, y) => s + cby[y], 0) / py.length;
@@ -789,9 +873,8 @@
     }
 
     const submissionStatus = showLastSubmitted ? 'NOT DAILY' : 'ACTIVE';
-    // WITH this:
-const statusColor = submissionStatus === 'ACTIVE' ? '#27ae60' : '#c0392b';
-const tableHTML = `
+    const statusColor = submissionStatus === 'ACTIVE' ? '#27ae60' : '#c0392b';
+    const tableHTML = `
 Kindly note that below figures should match the total number of vehicles repaired at your panel shop;
 
 <table style="border-collapse:collapse; font-family:'Segoe UI',Arial,sans-serif; font-size:14px; min-width:400px;">
@@ -799,51 +882,26 @@ Kindly note that below figures should match the total number of vehicles repaire
     <th style="background:#6a1a7f; color:white; font-weight:bold; padding:10px 16px; text-align:left; border:1px solid #5a1a6f;">Category</th>
     <th style="background:#6a1a7f; color:white; font-weight:bold; padding:10px 16px; text-align:center; border:1px solid #5a1a6f;">Total number of vehicles</th>
   </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:8px 16px; border:1px solid #ddd;">Active Repairs</td>
-    <td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${activeRepairsVal}</td>
-  </tr>
-  <tr style="background:#f8f9fa;">
-    <td style="padding:8px 16px; border:1px solid #ddd;">2022 Completed Repairs</td>
-    <td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${completed2022}</td>
-  </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:8px 16px; border:1px solid #ddd;">2023 Completed Repairs</td>
-    <td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${completed2023}</td>
-  </tr>
-  <tr style="background:#f8f9fa;">
-    <td style="padding:8px 16px; border:1px solid #ddd;">2024 Completed Repairs</td>
-    <td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${completed2024}</td>
-  </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:8px 16px; border:1px solid #ddd;">2025 Completed Repairs</td>
-    <td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${completed2025}</td>
-  </tr>
-  <tr style="background:#f8f9fa;">
-    <td style="padding:8px 16px; border:1px solid #ddd;">2026 Completed Repairs</td>
-    <td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${completed2026}</td>
-  </tr>
-  <tr style="background:#ffff00;">
-    <td style="padding:8px 16px; border:1px solid #ddd; font-weight:bold; color:#b8860b;">Write-offs</td>
-    <td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${writeOffsVal}</td>
-  </tr>
-  <tr style="background:#ffffff;">
-    <td style="padding:8px 16px; border:1px solid #ddd;">Submission Status</td>
-    <td style="padding:8px 16px; border:1px solid #ddd; text-align:center; font-weight:bold; color:${statusColor};">${submissionStatus}</td>
-  </tr>
+  <tr><td style="padding:8px 16px; border:1px solid #ddd;">Active Repairs</td><td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${activeRepairsVal}</td></tr>
+  <tr><td style="padding:8px 16px; border:1px solid #ddd;">2022 Completed Repairs</td><td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${completed2022}</td></tr>
+  <tr><td style="padding:8px 16px; border:1px solid #ddd;">2023 Completed Repairs</td><td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${completed2023}</td></tr>
+  <tr><td style="padding:8px 16px; border:1px solid #ddd;">2024 Completed Repairs</td><td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${completed2024}</td></tr>
+  <tr><td style="padding:8px 16px; border:1px solid #ddd;">2025 Completed Repairs</td><td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${completed2025}</td></tr>
+  <tr><td style="padding:8px 16px; border:1px solid #ddd;">2026 Completed Repairs</td><td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${completed2026}</td></tr>
+  <tr><td style="padding:8px 16px; border:1px solid #ddd;">Write-offs</td><td style="padding:8px 16px; border:1px solid #ddd; text-align:center;">${writeOffsVal}</td></tr>
+  <tr><td style="padding:8px 16px; border:1px solid #ddd;">Submission Status</td><td style="padding:8px 16px; border:1px solid #ddd; text-align:center; font-weight:bold; color:${statusColor};">${submissionStatus}</td></tr>
 </table>
-
 `;
-emailParts.push(tableHTML);
+    emailParts.push(tableHTML);
 
     if (writeOffs === 0) emailParts.push('We notice your profile does not include any write-offs. Please be reminded that in terms of the SLA with all OEMs we administer, this information must be provided.\n');
     emailParts.push('Please note that we are aware that certain information cannot be added to jobs retrospectively (such as mileage for vehicles handed back to clients). We only request that you ensure that all future jobs include all such information as to ensure compliance in future.');
 
     document.getElementById('reportText').innerHTML =
-  emailParts
-    .filter(p => p.trim() !== '')
-    .map(p => `<p style="margin-bottom:16px; line-height:1.6;">${p}</p>`)
-    .join('');
+      emailParts
+        .filter(p => p.trim() !== '')
+        .map(p => `<p style="margin-bottom:16px; line-height:1.6;">${p}</p>`)
+        .join('');
   }
 
   // ── Motivation ─────────────────────────────────────────
@@ -905,4 +963,3 @@ emailParts.push(tableHTML);
 </script>
 </body>
 </html>
-
