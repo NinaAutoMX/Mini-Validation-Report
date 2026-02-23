@@ -816,7 +816,7 @@ if (dSentences.length) summaryParts.push(dSentences.join('. ') + '.');
     if (document.getElementById('chkVolvo').checked) selectedOEMs.push('Volvo');
     if (document.getElementById('chkBmw').checked) selectedOEMs.push('BMW');
 
-    if (selectedOEMs.length > 0 && (ratio2025email <= 0.65 || ratio2026email <= 0.65)) {
+    if (selectedOEMs.length > 0 && (ratio2025 <= 0.65 || ratio2026 <= 0.65)) {
       const tsp2025f = 'R ' + (+document.getElementById('2025tsp').value || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const tsp2026f = 'R ' + (+document.getElementById('2026tsp').value || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const oemList = selectedOEMs.join(', ').replace(/, ([^,]*)$/, ' and $1');
@@ -990,6 +990,7 @@ Kindly note that below figures should match the total number of vehicles repaire
 </script>
 </body>
 </html>
+
 
 
 
