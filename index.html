@@ -112,7 +112,7 @@
       border-left: 6px solid var(--accent); padding: 30px; font-size: 14px;
       line-height: 1.8; margin-top: 30px; border-radius: 12px; box-shadow: 0 4px 16px var(--shadow);
     }
-    #reportText { white-space: pre-wrap; word-break: break-word; }
+    #reportText { word-break: break-word; font-family: 'Calibri Body', Calibri, sans-serif; font-size: 11pt; }
     /* Stellantis radio sub-group */
     .stellantis-radio-group {
       display: flex; gap: 16px; align-items: center; margin-top: 6px;
@@ -748,11 +748,17 @@ if (dSentences.length) summaryParts.push(dSentences.join('. ') + '.');
     const completed2026       = +document.getElementById('completed2026').value || 0;
     const writeOffsVal        = +document.getElementById('writeOffs').value || 0;
 
+    const pp2025 = +document.getElementById('pp2025').value || 0;
+    const pp2026 = +document.getElementById('pp2026').value || 0;
+    const ratio2025 = completed2025 > 0 ? pp2025 / completed2025 : 0;
+    const ratio2026 = completed2026 > 0 ? pp2026 / completed2026 : 0;
+
     // Not submitting full data
     const chkNotReceiving    = document.getElementById('chkNotReceiving').checked;
     const receivingNotBrands = document.getElementById('receivingNotBrands').value.trim();
 
-    emailParts.push('Good day,\n\nKindly note, at present, your validation has failed. Kindly note this will be considered as a non-compliance at time of audit.\n');
+    emailParts.push('Good day,');
+    emailParts.push('Kindly note, at present, your validation has failed. Kindly note this will be considered as a non-compliance at time of audit.');
 
     if (showLastSubmitted && lastSubmittedDate) {
       const fd = new Date(lastSubmittedDate).toLocaleDateString('en-ZA');
@@ -810,23 +816,27 @@ if (dSentences.length) summaryParts.push(dSentences.join('. ') + '.');
     if (document.getElementById('chkVolvo').checked) selectedOEMs.push('Volvo');
     if (document.getElementById('chkBmw').checked) selectedOEMs.push('BMW');
 
-    if (selectedOEMs.length > 0) {
-      const pp2025 = +document.getElementById('pp2025').value || 0;
-      const pp2026 = +document.getElementById('pp2026').value || 0;
+    if (selectedOEMs.length > 0 && (ratio2025email <= 0.65 || ratio2026email <= 0.65)) {
       const tsp2025f = 'R ' + (+document.getElementById('2025tsp').value || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const tsp2026f = 'R ' + (+document.getElementById('2026tsp').value || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const oemList = selectedOEMs.join(', ').replace(/, ([^,]*)$/, ' and $1');
 
-      emailParts.push(
-        `Kindly note further that your data submissions to AutoMX Connect indicate that Parts have only been fitted to ${pp2025} vehicles repaired in 2025 & ${pp2026} vehicles repaired in 2026 and the Total Spent on Parts submitted for Body Shop has been submitted as ${tsp2025f} for 2025 and ${tsp2026f} for 2026. There also appear to be a number of repairs on approved brands where only Part Description, Part Number and Job Card Price are being submitted.`
-      );
-      emailParts.push(
-        `Kindly note that the validation report checks if Part Order and Part Purchase Price are captured to let it know parts were fitted to a vehicle and so to check if Part Description, Supplier Name etc. are being submitted.`
-      );
-      emailParts.push(`Please be sure to submit the following required parts information to AutoMX Connect:`);
-      emailParts.push(
-        `1)\tPart Description (for each and every part fitted to ${oemList} vehicles)\n2)\tSupplier Name (for each and every part fitted to ${oemList} vehicles)\n3)\tPart Purchase Price if purchased from the relevant OEM or one of its dealers (for each and every part fitted to ${oemList} vehicles)\n4)\tTotal spent on Parts (not broken down by model)`
-      );
+      
+    emailParts.push(
+  `Kindly note further that your data submissions to AutoMX Connect indicate that Parts have only been fitted to ${pp2025} vehicles repaired in 2025 & ${pp2026} vehicles repaired in 2026 and the Total Spent on Parts submitted for Body Shop has been submitted as ${tsp2025f} for 2025 and ${tsp2026f} for 2026. There also appear to be a number of repairs on approved brands where only Part Description, Part Number and Job Card Price are being submitted.`
+);
+emailParts.push(
+  `Kindly note that the validation report checks if Part Order and Part Purchase Price are captured to let it know parts were fitted to a vehicle and so to check if Part Description, Supplier Name etc. are being submitted.`
+);
+emailParts.push(`Please be sure to submit the following required parts information to AutoMX Connect:`);
+emailParts.push(
+  `<ol style="margin:0; padding-left:20px; line-height:2;">
+    <li>Part Description (for each and every part fitted to ${oemList} vehicles)</li>
+    <li>Supplier Name (for each and every part fitted to ${oemList} vehicles)</li>
+    <li>Part Purchase Price if purchased from the relevant OEM or one of its dealers (for each and every part fitted to ${oemList} vehicles)</li>
+    <li>Total spent on Parts (not broken down by model)</li>
+  </ol>`
+);
     }
 
     // Stellantis — only if Stellantis dropdown is partial or not-submitting
@@ -872,10 +882,10 @@ if (dSentences.length) summaryParts.push(dSentences.join('. ') + '.');
     const cby = { 2022: completed2022, 2023: completed2023, 2024: completed2024, 2025: completed2025, 2026: completed2026 };
     const py = [2022, 2023, 2024, 2025];
     const pavg = py.reduce((s, y) => s + cby[y], 0) / py.length;
-    const exp2026 = completed2025 > 0 ? (completed2025 / 12) * (new Date().getMonth() + 1) : (pavg / 12) * (new Date().getMonth() + 1);
+    const exp2026 = (pavg / 12) * (new Date().getMonth() + 1);
     const lowYears = [];
-    py.forEach(y => { if (cby[y] > 0 && cby[y] < pavg * 0.5) lowYears.push(y); });
-    if (completed2026 > 0 && completed2026 < exp2026 * 0.5) lowYears.push(2026);
+    py.forEach(y => { if (cby[y] > 0 && cby[y] < pavg * 0.9) lowYears.push(y); });
+    if (completed2026 > 0 && completed2026 < exp2026 * 0.9) lowYears.push(2026);
     if (lowYears.length) {
       const abn = document.getElementById('autobodyName').value.trim() || 'your panel shop';
       const yearsList = lowYears.join(', ').replace(/, ([^,]*)$/, ' & $1');
@@ -912,7 +922,12 @@ Kindly note that below figures should match the total number of vehicles repaire
     document.getElementById('reportText').innerHTML =
       emailParts
         .filter(p => p.trim() !== '')
-        .map(p => `<p style="margin-bottom:16px; line-height:1.6; color:#000000;">${p}</p>`)
+        .map(p => {
+          const isBlock = p.trimStart().startsWith('<ol') || p.trimStart().startsWith('<table') || p.trimStart().startsWith('<ul');
+          return isBlock
+            ? `<div style="margin-bottom:16px; line-height:1.6; color:#000000; font-family:'Calibri Body',Calibri,sans-serif; font-size:11pt;">${p}</div>`
+            : `<p style="margin-bottom:16px; line-height:1.6; color:#000000; font-family:'Calibri Body',Calibri,sans-serif; font-size:11pt;">${p}</p>`;
+        })
         .join('');
   }
 
@@ -975,6 +990,7 @@ Kindly note that below figures should match the total number of vehicles repaire
 </script>
 </body>
 </html>
+
 
 
 
