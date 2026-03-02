@@ -417,6 +417,14 @@
             <option value="partial">Partial submission</option>
           </select>
         </fieldset>
+        <fieldset><legend>Tata 02/03/2026</legend>
+          <select id="tataDisclaimer" class="disclaimer-select">
+            <option value="">Select status...</option>
+            <option value="not-submitting">Not submitting</option>
+            <option value="submitting">Submitting</option>
+            <option value="partial">Partial submission</option>
+          </select>
+        </fieldset>        
         <fieldset><legend>Volvo 05/06/2025</legend>
           <select id="volvoDisclaimer" class="disclaimer-select">
             <option value="">Select status...</option>
@@ -580,6 +588,7 @@
       { brand: 'Renault',                                   id: 'renaultDisclaimer' },
       { brand: 'Subaru',                                    id: 'subaruDisclaimer' },
       { brand: 'Suzuki',                                    id: 'suzukiDisclaimer' },
+      { brand: 'Tata',                                      id: 'tataDisclaimer' },
       { brand: 'Volvo',                                     id: 'volvoDisclaimer' },
       { brand: 'Stellantis Categorization Forms',           id: 'stellantisDisclaimer' },
       { brand: 'Volvo Warranty & Maintenance Verification', id: 'volvovDisclaimer' },
@@ -673,7 +682,7 @@
 
     // Disclaimer summary — include ALL for the report narrative
     const dData = { submitting: [], notSubmitting: [], partial: [] };
-    ['baic','ford','gwmhaval','honda','hyundai','isuzu','jac','ldv','mahindra','mg','mitsubishi','renault','subaru','suzuki','volvo','stellantis','volvov'].forEach(p => {
+    ['baic','ford','gwmhaval','honda','hyundai','isuzu','jac','ldv','mahindra','mg','mitsubishi','renault','subaru','suzuki','tata','volvo','stellantis','volvov'].forEach(p => {
       const v = document.getElementById(p + 'Disclaimer')?.value || '';
       let t = p === 'gwmhaval' ? 'GWM & Haval' : p === 'stellantis' ? 'Stellantis Vehicle categorization forms' : p === 'volvov' ? 'Volvo Warranty & Maintenance' : p.charAt(0).toUpperCase() + p.slice(1);
       if (v === 'submitting') dData.submitting.push(t);
@@ -990,6 +999,7 @@ Kindly note that below figures should match the total number of vehicles repaire
 </script>
 </body>
 </html>
+
 
 
 
