@@ -216,7 +216,6 @@
         <label><input type="checkbox" id="chkSuzuki"> Suzuki</label>
         <label><input type="checkbox" id="chkTata"> Tata</label>
         <label><input type="checkbox" id="chkVolvo"> Volvo</label>
-        <label><input type="checkbox" id="chkBmw"> BMW</label>
       </div>
       <!-- Stellantis Premium/Standard radio (hidden until Stellantis is checked) -->
       <div id="stellantisRadioGroup" class="stellantis-radio-group" style="display:none; margin-top:14px;">
@@ -742,7 +741,6 @@ if (dSentences.length) summaryParts.push(dSentences.join('. ') + '.');
     const showLastSubmitted   = document.getElementById('chkLastSubmitted').checked;
     const lastSubmittedDate   = document.getElementById('lastSubmittedDate').value;
     const chkHasAccess        = document.getElementById('chkHasAccess').checked;
-    const chkFullData         = document.getElementById('chkFullData').checked;
     const chkAggregateText    = document.getElementById('chkAggregateText').checked;
     const aggregateTextBrands = document.getElementById('aggregateTextBrands').value.trim();
     const chkAggregateMake    = document.getElementById('chkAggregateMake').checked;
@@ -793,7 +791,6 @@ if (dSentences.length) summaryParts.push(dSentences.join('. ') + '.');
     emailParts.push('Please find attached herewith updated AutoMX Connect validation reports for your company. Please correct all fields indicated in red on your management system (the changes will be sent to us on your next file upload).\n');
 
     if (!chkHasAccess) emailParts.push('Kindly note you can find your most up-to-date validation report by logging into AutoMX Connect (https://www.automxconnect.com/Automatrix/) and following the instructions set out in the attached Guide.\n');
-    if (chkFullData) emailParts.push('Kindly note that we see that you are submitting full data for a number of OEMs which you either do not hold approval with or which are not administered by AutoMX. Kindly note that when assessing your validation report we only consider the following fields for such brands: Job Start Date, Job Completion Date (if applicable) and Part Purchase Price as this forms part of the aggregate data required to be submitted to AutoMX Connect. That being said we highly recommend that you rectify all the data flagged in the validation report, regardless of brand, as this will make the reporting available to you on AutoMX Connect much more accurate and of use to you. We wish to remind you that only you have access to the data regarding brands with which you do not hold approval or which are not administered by AutoMX.\n');
     if (chkHasAccess) emailParts.push('Please let us know the name/s, surname/s and e-mail address/es of the person/s we can grant access to AutoMX Connect. Having access to AutoMX Connect will allow you to draw the validation report (as well as other reports based on your data submissions) at your own convenience.\n');
 
     const selectedOEMs = [];
@@ -823,7 +820,6 @@ if (dSentences.length) summaryParts.push(dSentences.join('. ') + '.');
     if (document.getElementById('chkSuzuki').checked) selectedOEMs.push('Suzuki');
     if (document.getElementById('chkTata').checked) selectedOEMs.push('Tata');
     if (document.getElementById('chkVolvo').checked) selectedOEMs.push('Volvo');
-    if (document.getElementById('chkBmw').checked) selectedOEMs.push('BMW');
 
     if (selectedOEMs.length > 0 && (ratio2025 <= 0.65 || ratio2026 <= 0.65)) {
       const tsp2025f = 'R ' + (+document.getElementById('2025tsp').value || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -999,6 +995,7 @@ Kindly note that below figures should match the total number of vehicles repaire
 </script>
 </body>
 </html>
+
 
 
 
